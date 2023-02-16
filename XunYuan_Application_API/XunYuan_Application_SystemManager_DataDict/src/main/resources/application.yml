@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: XunYuan-SystemManager-DataDict
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        password: nacos
+        username: nacos
+        group: XunYuan_Group
+        namespace: public
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+server:
+  port: 9010

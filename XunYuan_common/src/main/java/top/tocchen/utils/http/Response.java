@@ -1,6 +1,12 @@
 package top.tocchen.utils.http;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.jackson.JsonComponent;
+
+import java.io.Serializable;
 
 /**
  * @author tocchen
@@ -9,7 +15,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * 后端统一返回值 与 HttpStatusEnum枚举联合使用
  **/
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Response<T> {
+@Data
+@NoArgsConstructor
+public class Response<T> implements Serializable {
+
+    private static final long serialVersionUID = 20230215L;
 
     /** 返回数据 */
     T data;
