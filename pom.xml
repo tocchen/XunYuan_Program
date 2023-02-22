@@ -17,6 +17,7 @@
         <module>XunYuan_ManagerSystem_User</module>
         <module>XunYuan_Data_User_CV</module>
         <module>XunYuan_Common</module>
+        <module>XunYuan_SpringSecurity_GateWay_API</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -34,6 +35,8 @@
         <swagger.version>2.9.2</swagger.version>
         <itextpdf.version>5.5.9</itextpdf.version>
         <itext.asian.version>5.2.0</itext.asian.version>
+        <hutool.version>4.5.7</hutool.version>
+        <jjwt.version>0.9.0</jjwt.version>
     </properties>
 
     <dependencyManagement>
@@ -112,6 +115,19 @@
                 <groupId>com.itextpdf</groupId>
                 <artifactId>itext-asian</artifactId>
                 <version>${itext.asian.version}</version>
+            </dependency>
+
+            <!--Hutool Java工具包-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <!--JWT(Json Web Token)登录支持-->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jjwt.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

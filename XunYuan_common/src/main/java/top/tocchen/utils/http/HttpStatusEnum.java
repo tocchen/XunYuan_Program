@@ -13,6 +13,10 @@ public enum HttpStatusEnum {
 
     /** 请求成功 */
     REQUEST_SUCCESS(200,"success"),
+    /** 用户未登录，或Token信息失效 */
+    USER_AUTH_FAIL(220,"The user does not login or the Token information is invalid "),
+    /** 用户权限认证失败 */
+    USER_ROLE_AUTH_FAIL(211,"User permission authentication failed"),
     /** 请求失败 */
     REQUEST_FAIL(400,"Bad Request"),
     /** 客户端请求信息的先决条件错误 */

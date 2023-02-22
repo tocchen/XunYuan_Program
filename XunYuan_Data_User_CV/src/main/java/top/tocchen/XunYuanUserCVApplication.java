@@ -11,7 +11,6 @@ import org.springframework.context.annotation.ComponentScan;
  * @since jdk 1.8
  **/
 @SpringBootApplication
-@ComponentScan(basePackages = "top.tocchen")
 @EnableCaching
 public class XunYuanUserCVApplication {
     public static void main(String[] args) {
