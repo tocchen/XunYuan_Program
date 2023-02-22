@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.tocchen.mapper.DataDictMapper">
 
-    <resultMap id="result2DataDictEntity" type="top.tocchen.top.tocchen.entity.DataDictEntity">
+    <resultMap id="result2DataDictEntity" type="top.tocchen.entity.DataDictEntity">
         <id column="id" property="id" />
         <result column="parent_id" property="parentId" />
         <result column="name" property="name" />
@@ -35,7 +35,7 @@
         WHERE `is_deleted` = 0 AND `parent_id` = #{parentId}
     </select>
 
-    <insert id="saveByExportEntity" parameterType="top.tocchen.top.tocchen.entity.ExportDataDictEntity">
+    <insert id="saveByExportEntity" parameterType="top.tocchen.entity.ExportDataDictEntity">
         INSERT INTO
         `system_dict_list` (`id`,`parent_id`,`name`,`value`,`dict_code`,`create_time`,`update_time`)
         VALUES

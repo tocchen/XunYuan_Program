@@ -2,10 +2,13 @@ package top.tocchen.service.impl;
 
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import top.tocchen.entity.BusinessEntity;
@@ -14,8 +17,12 @@ import top.tocchen.service.BusinessService;
 import top.tocchen.utils.DBUtil;
 import top.tocchen.utils.exceptions.ExecuteException;
 import top.tocchen.utils.exceptions.UpdateException;
+import top.tocchen.utils.redis.CacheKeyName;
+import top.tocchen.utils.redis.RedisCacheKeyGenerator;
+import top.tocchen.utils.redis.RedisDBName;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author tocchen
@@ -28,12 +35,19 @@ public class BusinessServiceImpl implements BusinessService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     public String saveBusiness(BusinessEntity business) {
         BusinessEntity insertResult = mongoTemplate.insert(business);
         if (ObjectUtils.isEmpty(insertResult)){
             throw new ExecuteException();
         }
+        String key = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_BUSINESS_NAME, insertResult.getId());
+        BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(key);
+        boundValueOperations.set(insertResult);
+        boundValueOperations.expire(1, TimeUnit.DAYS);
         return insertResult.getId();
     }
 
@@ -50,9 +64,14 @@ public class BusinessServiceImpl implements BusinessService {
         if (ObjectUtils.isEmpty(updateResult)){
             throw new ExecuteException();
         }
+        if (updateResult.getModifiedCount() == 1){
+            String key = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_BUSINESS_NAME, id);
+            redisTemplate.delete(key);
+        }
         return updateResult.getModifiedCount();
     }
 
+    @Cacheable(cacheNames = RedisDBName.REDIS_COMPANY_INFO_BUSINESS_NAME,keyGenerator = CacheKeyName.QUERY_ID_KEY)
     public BusinessEntity queryBusinessById(String id) {
         Query query = new Query();
         Criteria criteria = new Criteria();
@@ -80,6 +99,12 @@ public class BusinessServiceImpl implements BusinessService {
         update.set("OR",entity.getOR());
         update.set("updateDateTime",new Date());
         UpdateResult updateResult = mongoTemplate.updateFirst(query, update, CompanyInfoEntity.class);
+        if (updateResult.getModifiedCount() == 1){
+            String key = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_BUSINESS_NAME, entity.getId());
+            BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(key);
+            boundValueOperations.set(entity);
+            boundValueOperations.expire(1,TimeUnit.DAYS);
+        }
         return updateResult.getModifiedCount();
     }
 }

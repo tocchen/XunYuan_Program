@@ -5,6 +5,9 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundListOperations;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +18,8 @@ import top.tocchen.service.DataDictService;
 import top.tocchen.utils.DBUtil;
 import top.tocchen.utils.exceptions.DataFormatException;
 import top.tocchen.utils.exceptions.ExecuteException;
+import top.tocchen.utils.redis.RedisCacheKeyGenerator;
+import top.tocchen.utils.redis.RedisDBName;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -22,6 +27,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author tocchen
@@ -34,15 +40,41 @@ public class DataDictServiceService implements DataDictService {
     @Autowired
     private DataDictMapper mapper;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     public List<DataDictEntity> queryByParentId(int parentId) {
-        List<DataDictEntity> dataDictList = mapper.queryByParentId(parentId);
-        dataDictList.forEach(
-                (tmp) -> {
-                    boolean child = mapper.queryChildCount(tmp.getId()) > 0;
-                    tmp.setChild(child);
+
+        String key = RedisCacheKeyGenerator.generatorAllKey("queryByParentId",RedisDBName.REDIS_DATADICT_NAME, String.valueOf(parentId));
+        BoundListOperations boundListOperations = redisTemplate.boundListOps(key);
+        List range = boundListOperations.range(0, -1);
+        List<DataDictEntity> dataDictList = null;
+        if (range != null && range.size() != 0){
+            dataDictList = new ArrayList<>(range.size());
+            for(Object o : range){
+                String tempKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_DATADICT_NAME, String.valueOf(o));
+                BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(tempKey);
+                Object value = boundValueOperations.get();
+                if (value instanceof DataDictEntity){
+                    dataDictList.add((DataDictEntity)value);
                 }
-        );
+            }
+        }else{
+            dataDictList = mapper.queryByParentId(parentId);
+            dataDictList.forEach(
+                    (tmp) -> {
+                        boolean child = mapper.queryChildCount(tmp.getId()) > 0;
+                        tmp.setChild(child);
+                        String tempKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_DATADICT_NAME,String.valueOf(tmp.getId()));
+                        BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(tempKey);
+                        boundValueOperations.set(tmp);
+                        boundValueOperations.expire(1,TimeUnit.DAYS);
+                        boundListOperations.rightPush(tmp.getId());
+                        boundListOperations.expire(1,TimeUnit.DAYS);
+                    }
+            );
+        }
         return dataDictList;
     }
 
@@ -79,6 +111,14 @@ public class DataDictServiceService implements DataDictService {
                         @Override
                         public void invoke(ExportDataDictEntity o, AnalysisContext analysisContext) {
                             mapper.saveByExportEntity(o);
+                            String listKey = RedisCacheKeyGenerator.generatorAllKey("queryByParentId",RedisDBName.REDIS_DATADICT_NAME, String.valueOf(o.getParentId()));
+                            BoundListOperations boundListOperations = redisTemplate.boundListOps(listKey);
+                            boundListOperations.rightPush(o.getId());
+                            boundListOperations.expire(1,TimeUnit.DAYS);
+                            String valueKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_DATADICT_NAME, String.valueOf(o.getId()));
+                            BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(valueKey);
+                            boundValueOperations.set(o);
+                            boundValueOperations.expire(1,TimeUnit.DAYS);
                         }
                         @Override
                         public void doAfterAllAnalysed(AnalysisContext analysisContext) {

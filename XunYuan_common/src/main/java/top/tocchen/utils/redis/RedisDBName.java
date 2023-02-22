@@ -10,6 +10,11 @@ public interface RedisDBName {
     String REDIS_COMPANY_NAME = "Company";
 
 
-    String REDIS_DATADICT_NAME = "Company";
+    String REDIS_DATADICT_NAME = "DataDict";
+
+
+    String REDIS_COMPANY_INFO_BUSINESS_NAME = "Business";
+
+    String REDIS_COMPANY_INFO_NAME = "CompanyInfo";
 
 }
