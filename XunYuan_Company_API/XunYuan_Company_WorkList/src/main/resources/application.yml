@@ -1,0 +1,20 @@
+server:
+  port: 4042
+spring:
+  application:
+    name: XunYuan-Company-WorkList-Server
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017
+      database: xunyuan_company_db
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        namespace: public
+        group: XunYuan_Group
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher

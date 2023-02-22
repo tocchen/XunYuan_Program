@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.tocchen.mapper.CVLogMapper">
+
+    <resultMap id="result2Entity" type="top.tocchen.entity.CVLogEntity">
+        <id column="id" property="id" />
+        <result column="company_id" property="companyId" />
+        <result column="user_id" property="userId" />
+        <result column="cv_id" property="cvId" />
+        <result column="cv_status" property="cvStatus" />
+        <result column="update_datetime" property="updateDateTime" />
+        <result column="create_datetime" property="createDateTime" />
+    </resultMap>
+
+    <sql id="column">`id`,`company_id`,`user_id`,`cv_id`,`cv_status`,`update_datetime`,`create_datetime`</sql>
+    <sql id="tableName">`cv_log`</sql>
+    <sql id="isDeleted">`is_deleted` = 0</sql>
+
+    <select id="queryAll" resultMap="result2Entity">
+        SELECT <include refid="column"></include>
+        FROM <include refid="tableName"></include>
+        WHERE <include refid="isDeleted"></include>
+        LIMIT #{start},#{pageSize}
+    </select>
+
+    <select id="queryAllCount" resultMap="result2Entity">
+        SELECT COUNT(*)
+        FROM <include refid="tableName"></include>
+        WHERE <include refid="isDeleted"></include>
+    </select>
+
+    <select id="queryAllByCompanyId" resultMap="result2Entity" parameterType="string">
+        SELECT <include refid="column"></include>
+        FROM <include refid="tableName"></include>
+        WHERE <include refid="isDeleted"></include> AND `company_id` = #{companyId}
+    </select>
+
+    <select id="queryAllByCompanyIdCount" resultMap="result2Entity" parameterType="string">
+        SELECT COUNT(*)
+        FROM <include refid="tableName"></include>
+        WHERE <include refid="isDeleted"></include> AND `company_id` = #{companyId}
+        LIMIT #{start},#{pageSize}
+    </select>
+
+    <select id="queryAllByUserId" resultMap="result2Entity" parameterType="string">
+        SELECT <include refid="column"></include>
+        FROM <include refid="tableName"></include>
+        WHERE <include refid="isDeleted"></include> AND `user_id` = #{userId}
+        LIMIT #{start},#{pageSize}
+    </select>
+
+    <select id="queryAllByUserIdCount" resultMap="result2Entity" parameterType="string">
+        SELECT COUNT(*)
+        FROM <include refid="tableName"></include>
+        WHERE <include refid="isDeleted"></include> AND `user_id` = #{companyId}
+    </select>
+
+    <insert id="insertCVLog" parameterType="top.tocchen.entity.CVLogEntity">
+        INSERT INTO <include refid="tableName"></include> (<include refid="column"></include>)
+        VALUES (#{id},#{companyId},#{userId},#{cvId},#{cvStatus},NOW(),NOW())
+    </insert>
+
+    <update id="removeCVLog" parameterType="string">
+        UPDATE <include refid="tableName"></include>
+        SET `is_deleted` = 1
+        WHERE #{id}
+    </update>
+</mapper>

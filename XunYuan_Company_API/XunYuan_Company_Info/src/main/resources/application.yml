@@ -1,0 +1,20 @@
+server:
+  port: 4010
+spring:
+  application:
+    name: XunYuan-Company-Info-Server
+  data:
+    mongodb:
+      database: xunyuan_company_db
+      uri: mongodb://localhost:27017
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        namespace: public
+        group: XunYuan_Group
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
