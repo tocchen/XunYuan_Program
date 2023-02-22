@@ -2,6 +2,7 @@ package top.tocchen.service.impl;
 
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -51,6 +52,7 @@ public class BusinessServiceImpl implements BusinessService {
         return insertResult.getId();
     }
 
+    @CacheEvict(cacheNames = RedisDBName.REDIS_COMPANY_INFO_BUSINESS_NAME,keyGenerator = CacheKeyName.QUERY_ID_KEY)
     public Long deletedBusiness(String id){
         BusinessEntity tmp = mongoTemplate.findById(id, BusinessEntity.class);
         if (ObjectUtils.isEmpty(tmp)){
@@ -63,10 +65,6 @@ public class BusinessServiceImpl implements BusinessService {
         UpdateResult updateResult = mongoTemplate.upsert(query, update, BusinessEntity.class);
         if (ObjectUtils.isEmpty(updateResult)){
             throw new ExecuteException();
-        }
-        if (updateResult.getModifiedCount() == 1){
-            String key = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_BUSINESS_NAME, id);
-            redisTemplate.delete(key);
         }
         return updateResult.getModifiedCount();
     }

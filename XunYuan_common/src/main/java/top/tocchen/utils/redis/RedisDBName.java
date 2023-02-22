@@ -17,4 +17,6 @@ public interface RedisDBName {
 
     String REDIS_COMPANY_INFO_NAME = "CompanyInfo";
 
+    String REDIS_WORK_LIST_NAME = "WorkList";
+
 }

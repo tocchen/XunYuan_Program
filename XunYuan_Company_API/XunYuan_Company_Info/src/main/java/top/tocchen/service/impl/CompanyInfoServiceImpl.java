@@ -3,6 +3,7 @@ package top.tocchen.service.impl;
 import com.mongodb.client.result.UpdateResult;
 import com.sun.istack.internal.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -20,6 +21,7 @@ import top.tocchen.service.CompanyInfoService;
 import top.tocchen.utils.DBUtil;
 import top.tocchen.utils.exceptions.ExecuteException;
 import top.tocchen.utils.exceptions.UpdateException;
+import top.tocchen.utils.redis.CacheKeyName;
 import top.tocchen.utils.redis.RedisCacheKeyGenerator;
 import top.tocchen.utils.redis.RedisDBName;
 import top.tocchen.vo.CompanyInfoVo;
@@ -73,18 +75,13 @@ public class CompanyInfoServiceImpl implements CompanyInfoService {
         boundValueOperations.expire(1, TimeUnit.DAYS);
     }
 
+    @CacheEvict(cacheNames = RedisDBName.REDIS_COMPANY_INFO_NAME,keyGenerator = CacheKeyName.QUERY_ID_KEY)
     public Long deletedCompanyInfoById(String id) {
         Query query = new Query(Criteria.where("_id").is(id));
         Update update = new Update();
         update.set("deleted",1);
         update.set("updateDateTime",new Date());
         UpdateResult updateResult = mongoTemplate.updateFirst(query, update, CompanyInfoEntity.class);
-
-        if (updateResult.getModifiedCount() == 1){
-            BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_NAME, id));
-            boundValueOperations.set("");
-            boundValueOperations.expire(1, TimeUnit.DAYS);
-        }
 
         return updateResult.getModifiedCount();
     }

@@ -2,21 +2,32 @@ package top.tocchen.service.impl;
 
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import top.tocchen.entity.WorkEntity;
 import top.tocchen.service.WorkService;
 import top.tocchen.utils.DBUtil;
 import top.tocchen.utils.exceptions.ExecuteException;
+import top.tocchen.utils.exceptions.UpdateException;
+import top.tocchen.utils.redis.CacheKeyName;
+import top.tocchen.utils.redis.RedisCacheKeyGenerator;
+import top.tocchen.utils.redis.RedisDBName;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import static top.tocchen.utils.redis.RedisDBName.*;
 
 /**
  * @author tocchen
@@ -29,11 +40,19 @@ public class WorkServiceImpl implements WorkService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     public void addWork(WorkEntity entity) {
         WorkEntity insert = mongoTemplate.insert(entity);
+        String key = RedisCacheKeyGenerator.generatorByIdKey(REDIS_WORK_LIST_NAME, entity.getId());
+        BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(key);
+        boundValueOperations.set(insert);
+        boundValueOperations.expire(1, TimeUnit.DAYS);
     }
 
+    @CacheEvict(cacheNames = REDIS_WORK_LIST_NAME,keyGenerator = CacheKeyName.QUERY_ID_KEY)
     public Long removeWorkByIdAndComId(String id, String companyId) {
         Criteria criteria = new Criteria();
         criteria.andOperator(
@@ -44,7 +63,7 @@ public class WorkServiceImpl implements WorkService {
         Query query = new Query(criteria);
         Update update = new Update().set("deleted",1);
         UpdateResult upset = mongoTemplate.upsert(query, update, WorkEntity.class);
-        if (ObjectUtils.isEmpty(upset)){
+        if (ObjectUtils.isEmpty(upset) || upset.getModifiedCount() != 1){
             throw new ExecuteException();
         }
         return upset.getModifiedCount();
@@ -71,12 +90,17 @@ public class WorkServiceImpl implements WorkService {
         update.set("workType",entity.getWorkType());
         UpdateResult upset = mongoTemplate.upsert(query, update, WorkEntity.class);
 
-        if (ObjectUtils.isEmpty(upset)){
-            throw new ExecuteException();
+        if (ObjectUtils.isEmpty(upset) || upset.getModifiedCount() != 1){
+            throw new UpdateException();
         }
+        String key = RedisCacheKeyGenerator.generatorByIdKey(REDIS_WORK_LIST_NAME, entity.getId());
+        BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(key);
+        boundValueOperations.set(entity);
+        boundValueOperations.expire(1,TimeUnit.DAYS);
         return upset.getModifiedCount();
     }
 
+    @Cacheable(cacheNames = REDIS_WORK_LIST_NAME,keyGenerator = CacheKeyName.QUERY_ID_KEY)
     public WorkEntity queryWorkById(String id) {
         WorkEntity result = mongoTemplate.findById(id, WorkEntity.class);
         DBUtil.isEmpty2QueryException(result);
