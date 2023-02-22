@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import top.tocchen.utils.http.HttpStatusEnum;
 import top.tocchen.utils.http.Response;
 
+import java.util.zip.DataFormatException;
+
 
 /**
  * @author tocchen

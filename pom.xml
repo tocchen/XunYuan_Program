@@ -8,12 +8,15 @@
     <artifactId>XunYuan_Service_Program</artifactId>
     <version>1.0.0-Beta</version>
     <modules>
-        <module>XunYuan_common</module>
-        <module>XunYuan_ManagerSystem_API</module>
-        <module>XunYuan_User_API</module>
-        <module>XunYuan_Company_API</module>
-        <module>XunYuan_Data_API</module>
-        <module>XunYuan_User_API</module>
+        <module>XunYuan_Common</module>
+        <module>XunYuan_Company_Info</module>
+        <module>XunYuan_Company_WorkList</module>
+        <module>XunYuan_Data_CV</module>
+        <module>XunYuan_ManagerSystem_Company</module>
+        <module>XunYuan_ManagerSystem_DataDict</module>
+        <module>XunYuan_ManagerSystem_User</module>
+        <module>XunYuan_Data_User_CV</module>
+        <module>XunYuan_Common</module>
     </modules>
     <packaging>pom</packaging>
 
