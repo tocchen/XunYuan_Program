@@ -26,6 +26,8 @@ public class CompanyInfoVo  {
     private String companyName;
     /** 介绍 */
     private String introduction;
+    /** 企业用户Id */
+    private String companyUserId;
     /** 工商信息ID */
     private String businessId;
     /** 地址 */
@@ -45,6 +47,7 @@ public class CompanyInfoVo  {
         return new CompanyInfoEntity(
                 this.id,
                 this.companyName,
+                this.companyUserId,
                 this.introduction,
                 this.businessId,
                 this.address,
@@ -63,5 +66,6 @@ public class CompanyInfoVo  {
         this.createDateTime = companyInfo.getCreateDateTime();
         this.updateDateTime = companyInfo.getUpdateDateTime();
         this.businessEntity = businessEntity;
+        this.companyUserId = companyInfo.getCompanyUserId();
     }
 }

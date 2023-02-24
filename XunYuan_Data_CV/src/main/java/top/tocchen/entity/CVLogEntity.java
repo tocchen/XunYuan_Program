@@ -23,6 +23,8 @@ public class CVLogEntity implements Serializable {
 
     private String cvId;
 
+    private String jobId;
+
     private Date updateDateTime;
 
     private Date createDateTime;

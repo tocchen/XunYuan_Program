@@ -42,7 +42,7 @@ public class BusinessEntity {
     private String OR;
     /** 创建时间 */
     @JsonFormat( pattern ="yyyy-MM-dd", timezone ="GMT+8")
-    private Date createDateTime ;
+    private Date createDateTime  ;
     /** 更新时间  */
     @JsonFormat( pattern ="yyyy-MM-dd", timezone ="GMT+8")
     private Date updateDateTime ;

@@ -75,20 +75,24 @@ public class CompanyInfoServiceImpl implements CompanyInfoService {
         boundValueOperations.expire(1, TimeUnit.DAYS);
     }
 
-    @CacheEvict(cacheNames = RedisDBName.REDIS_COMPANY_INFO_NAME,keyGenerator = CacheKeyName.QUERY_ID_KEY)
-    public Long deletedCompanyInfoById(String id) {
-        Query query = new Query(Criteria.where("_id").is(id));
+
+    public boolean deletedCompanyInfoById(String id,String companyUserId) {
+        Query query = new Query(Criteria.where("_id").is(id).and("companyUserId").is(companyUserId));
         Update update = new Update();
         update.set("deleted",1);
         update.set("updateDateTime",new Date());
         UpdateResult updateResult = mongoTemplate.updateFirst(query, update, CompanyInfoEntity.class);
-
-        return updateResult.getModifiedCount();
+        if (updateResult.getModifiedCount() == 1){
+            String valueKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_NAME, companyUserId);
+            redisTemplate.delete(valueKey);
+            return true;
+        }
+        return false;
     }
 
-    public CompanyInfoEntity queryCompanyById(String id) {
+    public CompanyInfoEntity queryCompanyByUserId(String companyUserId) {
         CompanyInfoEntity result = null;
-        String valueKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_NAME, id);
+        String valueKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_NAME, companyUserId);
         BoundValueOperations boundValueOps = redisTemplate.boundValueOps(valueKey);
         Object o = boundValueOps.get();
         if (o instanceof CompanyInfoEntity){
@@ -97,7 +101,7 @@ public class CompanyInfoServiceImpl implements CompanyInfoService {
             Query query = new Query();
             Criteria criteria = new Criteria();
             criteria.andOperator(
-                    Criteria.where("_id").is(id),
+                    Criteria.where("companyUserId").is(companyUserId),
                     Criteria.where("deleted").is(0)
             );
             query.addCriteria(criteria);
@@ -111,8 +115,8 @@ public class CompanyInfoServiceImpl implements CompanyInfoService {
         return result;
     }
 
-    public Long updateCompanyInfoById(CompanyInfoEntity entity) {
-        Query query = new Query(Criteria.where("_id").is(entity.getId()));
+    public boolean updateCompanyInfoById(CompanyInfoEntity entity) {
+        Query query = new Query(Criteria.where("_id").is(entity.getId()).and("companyUserId").is(entity.getCompanyUserId()));
         Update update = new Update();
         update.set("companyName",entity.getCompanyName());
         update.set("introduction",entity.getIntroduction());
@@ -120,12 +124,13 @@ public class CompanyInfoServiceImpl implements CompanyInfoService {
         update.set("updateDateTime",new Date());
         UpdateResult updateResult = mongoTemplate.updateFirst(query, update, CompanyInfoEntity.class);
         if (updateResult.getModifiedCount() == 1){
-            String valueKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_NAME, entity.getId());
+            String valueKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_NAME, entity.getCompanyUserId());
             BoundValueOperations boundValueOps = redisTemplate.boundValueOps(valueKey);
             boundValueOps.set(entity);
             boundValueOps.expire(1, TimeUnit.DAYS);
+            return true;
         }
-        return updateResult.getModifiedCount();
+        return false;
     }
 
     public List<CompanyInfoEntity> queryCompanyByName(String name) {
@@ -136,8 +141,7 @@ public class CompanyInfoServiceImpl implements CompanyInfoService {
         if (range != null && range.size() != 0){
             result = new ArrayList<CompanyInfoEntity>(range.size());
             for (Object o : range){
-                String valueKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_NAME, (String) o);
-                BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(valueKey);
+                BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(o);
                 CompanyInfoEntity entity = (CompanyInfoEntity) boundValueOperations.get();
                 result.add(entity);
             }
@@ -154,9 +158,12 @@ public class CompanyInfoServiceImpl implements CompanyInfoService {
             for (CompanyInfoEntity entity : result){
                 String valueKey = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_NAME, (String) entity.getId());
                 boundListOperations.rightPush(valueKey);
+                BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(valueKey);
+                boundValueOperations.set(entity);
+                boundValueOperations.expire(1,TimeUnit.DAYS);
             }
         }
-
+        boundListOperations.expire(10,TimeUnit.MINUTES);
         return result;
     }
 }

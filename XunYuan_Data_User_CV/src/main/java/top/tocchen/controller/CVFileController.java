@@ -37,12 +37,14 @@ public class CVFileController {
     @GetMapping("/download/{id}")
     public Response<?> exportCVById(@PathVariable("id") String id, HttpServletResponse response){
         CVEntity result = icvService.queryCVById(id);
+//        CVEntity result = new CVEntity();
+//        result.setUserInfo(new UserInfoEntity("tocchen","123456","1","1","1",new Date(),"1","1","1"));
         // Create PDF File Name [YYYYMMDD_UserName_简历.pdf]
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String str = simpleDateFormat.format(date);
         String datetime = str.replace("-", "").replace(" ", "").replace(":","");
-        String filename = datetime+"_"+result.getUserInfo().getName()+"_"+"_简历.pdf";
+        String filename = datetime+"_"+result.getUserInfo().getName()+"_"+".pdf";
         try {
             response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
             OutputStream out = response.getOutputStream();

@@ -41,6 +41,8 @@ public class BusinessServiceImpl implements BusinessService {
 
 
     public String saveBusiness(BusinessEntity business) {
+        business.setUpdateDateTime(new Date());
+        business.setCreateDateTime(new Date());
         BusinessEntity insertResult = mongoTemplate.insert(business);
         if (ObjectUtils.isEmpty(insertResult)){
             throw new ExecuteException();
@@ -62,6 +64,7 @@ public class BusinessServiceImpl implements BusinessService {
         Query query = new Query(Criteria.where("_id").is(tmp.getId()));
         Update update = new Update();
         update.set("deleted",1);
+        update.set("updateDateTime",new Date());
         UpdateResult updateResult = mongoTemplate.upsert(query, update, BusinessEntity.class);
         if (ObjectUtils.isEmpty(updateResult)){
             throw new ExecuteException();
@@ -96,10 +99,11 @@ public class BusinessServiceImpl implements BusinessService {
         update.set("USCC",entity.getUSCC());
         update.set("OR",entity.getOR());
         update.set("updateDateTime",new Date());
-        UpdateResult updateResult = mongoTemplate.updateFirst(query, update, CompanyInfoEntity.class);
+        UpdateResult updateResult = mongoTemplate.updateFirst(query, update, BusinessEntity.class);
         if (updateResult.getModifiedCount() == 1){
             String key = RedisCacheKeyGenerator.generatorByIdKey(RedisDBName.REDIS_COMPANY_INFO_BUSINESS_NAME, entity.getId());
             BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(key);
+            entity.setUpdateDateTime(new Date());
             boundValueOperations.set(entity);
             boundValueOperations.expire(1,TimeUnit.DAYS);
         }

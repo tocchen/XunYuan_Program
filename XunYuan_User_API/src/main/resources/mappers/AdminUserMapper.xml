@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.tocchen.mapper.AdminUserMapper">
+
+    <resultMap id="UserAllResultMap" type="top.tocchen.entity.AdminUser" >
+        <id column="id" property="id"  />
+        <result column="email" property="email"  />
+        <result column="job_number" property="jobNumber"  />
+        <result column="phone" property="phone" />
+        <result column="password" property="password"  />
+        <result column="salt" property="salt" />
+        <result column="delete" property="delete"  />
+        <result column="create_datetime" property="createDatetime"  />
+        <result column="update_datetime" property="updateDatetime"  />
+    </resultMap>
+
+    <resultMap id="UserCustomResultMap" type="top.tocchen.entity.AdminUser">
+        <id column="id" property="id"  />
+        <result column="email" property="email"  />
+        <result column="phone" property="phone" />
+        <result column="salt" property="salt" />
+        <result column="job_number" property="jobNumber"  />
+        <result column="password" property="password"  />
+        <result column="user_name" property="userName" />
+    </resultMap>
+
+    <sql id="adminTableName">
+        `admin_user_table`
+    </sql>
+    <sql id="allColumn">
+        `id`,`email`,`job_number`,`phone`,`password`,`salt`,`delete`,`create_datetime`,`update_datetime`,`user_name`
+    </sql>
+    <sql id="customColumn">
+        `id`,`email`,`phone`,`salt`,`job_number`,`password`,`user_name`
+    </sql>
+
+
+    <insert id="insertAdminUser" parameterType="top.tocchen.entity.AdminUser">
+        INSERT INTO <include refid="adminTableName" />
+        (<include refid="allColumn" />)
+        VALUES
+        (
+        #{id},#{email},#{jobNumber},#{phone},#{password},#{salt},0,NOW(),NOW(),#{userName}
+        )
+    </insert>
+
+    <select id="existAdminUserByJobNumber" resultType="int" parameterType="string">
+         SELECT COUNT(`job_number`)
+         FROM <include refid="adminTableName" />
+         WHERE `job_number`=#{jobNumber}
+         AND `delete`= 0;
+    </select>
+
+    <select id="queryAdminUserByAccountAndJobNumber" resultMap="UserCustomResultMap">
+        SELECT <include refid="customColumn" />
+        FROM <include refid="adminTableName" />
+        WHERE
+        `delete` = 0 AND
+        (`email` = #{account} OR `phone` = #{account})
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <select id="queryIdByUser" resultMap="UserCustomResultMap" parameterType="int">
+        SELECT `id`,`email`,`job_number`,`password` FROM `manager_user` WHERE `delete` = 0 AND `id` = #{id};
+    </select>
+
+    <select id="queryMoreByUser" resultMap="UserCustomResultMap">
+        SELECT `id`,`email`,`job_number`,`password`
+        FROM `manager_user`
+        WHERE `job_number`=#{jobNumber} AND  `email`=#{email} AND `password`=#{password} AND `delete` = 0 ;
+    </select>
+
+    <insert id="saveUser" >
+        INSERT INTO
+        `manager_user`(`id`,`email`,`job_number`,`password`,`salt`,`create_datetime`,`update_datetime`)
+        VALUES (#{id},#{email},#{jobNumber},#{password},#{salt},NOW(),NOW())
+    </insert>
+
+    <update id="updatePassword" >
+        UPDATE `manager_user` SET `password`=#{password} WHERE `id`=#{id}
+    </update>
+
+    <update id="removeUser">
+        UPDATE `manager_user` SET `delete` = 1 WHERE `id`=#{id} AND `delete`=0
+    </update>
+
+    <select id="queryUserSalt" resultType="string">
+        SELECT `salt` FROM `manager_user` WHERE `id`=#{id} AND `delete`=0
+    </select>
+
+    <select id="queryEmailJobNumberByUserId" resultType="string">
+        SELECT `id` FROM `manager_user` WHERE `email`=#{email} AND `job_number`=#{jobNumber} AND `delete`= 0;
+    </select>
+
+    <select id="queryJobNumberExists" resultType="int">
+
+    </select>
+
+</mapper>

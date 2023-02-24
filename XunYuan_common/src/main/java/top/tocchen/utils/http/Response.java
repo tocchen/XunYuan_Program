@@ -20,11 +20,13 @@ public class Response<T> implements Serializable {
     private static final long serialVersionUID = 20230215L;
 
     /** 返回数据 */
-    T data;
+    private T data;
     /** 返回状态码 */
-    int code;
+    private int code;
     /** 返回消息 */
-    String message;
+    private String message;
+
+    private String token;
 
     public Response (T data, int code, String message){
         this.data = data;

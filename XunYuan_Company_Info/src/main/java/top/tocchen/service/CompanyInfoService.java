@@ -12,13 +12,38 @@ import java.util.List;
  **/
 public interface CompanyInfoService {
 
+    /**
+     * 保存企业信息
+     * @param companyInfoVo 实体类对象
+     */
     void saveCompanyInfo(CompanyInfoVo companyInfoVo);
 
-    Long deletedCompanyInfoById(String id);
+    /**
+     * 删除企业信息 通过Id字段
+     * @param id Id字段
+     * @param companyUserId 企业用户id
+     * @return 操作结果
+     */
+    boolean deletedCompanyInfoById(String id,String companyUserId);
 
-    CompanyInfoEntity queryCompanyById(String id);
+    /**
+     * 通过企业用户id字段查询信息
+     * @param companyUserId id
+     * @return 结果
+     */
+    CompanyInfoEntity queryCompanyByUserId(String companyUserId);
 
-    Long updateCompanyInfoById(CompanyInfoEntity entity);
+    /**
+     * 通过Id字段更新企业
+     * @param entity entity
+     * @return 结果
+     */
+    boolean updateCompanyInfoById(CompanyInfoEntity entity);
 
+    /**
+     * 通过企业名称查询企业
+     * @param name 企业名称
+     * @return 返回结果集
+     */
     List<CompanyInfoEntity> queryCompanyByName(String name);
 }

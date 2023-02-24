@@ -10,6 +10,7 @@
         <result column="user_id" property="userId" />
         <result column="cv_id" property="cvId" />
         <result column="cv_status" property="cvStatus" />
+        <result column="job_id" property="jobId" />
         <result column="update_datetime" property="updateDateTime" />
         <result column="create_datetime" property="createDateTime" />
     </resultMap>

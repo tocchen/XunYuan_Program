@@ -7,6 +7,6 @@ package top.tocchen.utils.exceptions;
  **/
 public class DataFormatException extends RuntimeException {
     public DataFormatException(){
-        super("数据格式错误");
+        super("请求失败：数据格式错误（某个必要参数为空，或参数内容不正确）");
     }
 }

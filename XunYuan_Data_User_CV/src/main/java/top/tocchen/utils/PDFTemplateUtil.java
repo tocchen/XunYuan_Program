@@ -25,8 +25,8 @@ public class PDFTemplateUtil {
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
             document.add(createTable(writer,entity));
-            int count = writer.getPageNumber() - 1;
-            for(int n = 0; n<count; n++){
+            int count = writer.getPageNumber() ;
+            for(int n = 1; n<=count; n++){
                 // 添加文字水印
                 PdfContentByte cb = writer.getDirectContent();
                 cb.beginText(); // 开始
@@ -50,7 +50,7 @@ public class PDFTemplateUtil {
             document.close();
             writer.close();
         } catch (Exception e) {
-            throw new ExecuteException();
+            e.printStackTrace();
         }
     }
 
@@ -144,6 +144,7 @@ public class PDFTemplateUtil {
         }else {
             workHistoryCount = entity.getUserWorkHistory().size();
         }
+
         cell = new PdfPCell(new Phrase("工作经历",font));
         cell.setColspan(1);//设置所占列数
         if (workHistoryCount == 0){
@@ -164,7 +165,7 @@ public class PDFTemplateUtil {
             cell.setVerticalAlignment(Element.ALIGN_MIDDLE);//设置垂直居中
             table.addCell(cell);
         }else{
-            for (int i = 0; i < workHistoryCount-1 ;i++){
+            for (int i = 0; i < workHistoryCount ;i++){
                 cell = new PdfPCell(new Phrase("==========经历-"+i+"=========",font));
                 cell.setFixedHeight(size);
                 cell.setColspan(4);
@@ -234,7 +235,7 @@ public class PDFTemplateUtil {
             cell.setVerticalAlignment(Element.ALIGN_MIDDLE);//设置垂直居中
             table.addCell(cell);
         }else{
-            for (int i = 0; i < projectCount - 1; i++) {
+            for (int i = 0; i < projectCount; i++) {
                 cell = new PdfPCell(new Phrase("==========项目-1=========",font));
                 cell.setFixedHeight(size);
                 cell.setColspan(4);
@@ -304,7 +305,7 @@ public class PDFTemplateUtil {
             cell.setVerticalAlignment(Element.ALIGN_MIDDLE);//设置垂直居中
             table.addCell(cell);
         }else{
-            for (int i = 0; i < educationalCount - 1; i++) {
+            for (int i = 0; i < educationalCount; i++) {
                 cell = new PdfPCell(new Phrase("==============教育经历-1==============",font));
                 cell.setFixedHeight(size);
                 cell.setColspan(4);

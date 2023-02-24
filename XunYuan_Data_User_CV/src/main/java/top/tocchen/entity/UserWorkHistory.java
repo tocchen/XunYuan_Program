@@ -2,6 +2,7 @@ package top.tocchen.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,6 +14,7 @@ import java.util.Date;
  * 工作经历
  **/
 @Data
+@NoArgsConstructor
 public class UserWorkHistory implements Serializable {
 
     private static final long serialVersionUID = 202302201433L;

@@ -1,5 +1,5 @@
 server:
-  port: 3020
+  port: 4060
 spring:
   application:
     name: XunYuan-Data-User-CV-Server

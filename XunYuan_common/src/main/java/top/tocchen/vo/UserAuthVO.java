@@ -26,10 +26,14 @@ public class UserAuthVO implements Serializable {
 
     private String userName;
 
-    private String slat;
+    private String salt;
 
     private String password;
 
     private UserRoleEnum role;
+
+    private String verifStr;
+
+    private String othersStr;
 
 }

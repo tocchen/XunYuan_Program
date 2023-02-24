@@ -40,9 +40,9 @@ public class CompanyInfoController {
         return Response.success();
     }
 
-    @GetMapping("/query/{id}")
-    public Response<?> queryCompanyInfoById(@PathVariable("id") String id){
-        CompanyInfoEntity companyInfoEntity = companyInfoService.queryCompanyById(id);
+    @GetMapping("/query/{companyUserId}")
+    public Response<?> queryCompanyInfoByCompanyUserId(@PathVariable("companyUserId") String companyUserId){
+        CompanyInfoEntity companyInfoEntity = companyInfoService.queryCompanyByUserId(companyUserId);
         if (ObjectUtils.isEmpty(companyInfoEntity)){
             throw new QueryException();
         }
@@ -56,16 +56,15 @@ public class CompanyInfoController {
         return Response.success(result);
     }
 
-    @GetMapping("/query}")
+    @GetMapping("/query")
     public Response<?> queryCompanyByCompanyName(@RequestParam("companyName") String companyName){
         List<CompanyInfoEntity> result = companyInfoService.queryCompanyByName(companyName);
         return Response.success(result);
     }
 
-    @DeleteMapping("/delete/{id}")
-    public Response<?> deletedCompanyInfoById(@PathVariable("id") String id){
-        Long result = companyInfoService.deletedCompanyInfoById(id);
-        if (result != 1){
+    @DeleteMapping("/delete/{id}/{companyUserId}")
+    public Response<?> deletedCompanyInfoById(@PathVariable("id") String id,@PathVariable("companyUserId") String companyUserId){
+        if (!companyInfoService.deletedCompanyInfoById(id,companyUserId)){
             throw new ExecuteException();
         }
         return Response.success();
@@ -77,8 +76,7 @@ public class CompanyInfoController {
         if (ObjectUtils.isEmpty(entity)){
             throw new JSONFormatException();
         }
-        Long result = companyInfoService.updateCompanyInfoById(entity);
-        if (result != 1){
+        if (!companyInfoService.updateCompanyInfoById(entity)){
             throw new ExecuteException();
         }
         return Response.success();

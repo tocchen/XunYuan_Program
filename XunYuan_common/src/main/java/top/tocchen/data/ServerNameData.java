@@ -11,4 +11,6 @@ public class ServerNameData {
 
     public static final String XUNYUAN_USER_CV = "XunYuan-User-CV-Server";
 
+    public static final String XUNYUAN_USER_API = "XunYuan-User-Service";
+
 }

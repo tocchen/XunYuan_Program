@@ -16,4 +16,5 @@ public interface CacheKeyName {
     String COUNT_KEY = "queryAllCountKeyGenerator";
 
     String COUNT_PARAM_KEY = "queryByParamCountKeyGenerator";
+
 }

@@ -19,4 +19,6 @@ public interface RedisDBName {
 
     String REDIS_USER_CV_NAME = "UserCV";
 
+    String REDIS_TOKEN_USER_NAME = "Token";
+
 }

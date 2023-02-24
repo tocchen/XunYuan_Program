@@ -20,6 +20,7 @@ public class WorkSettingController {
     @Autowired
     private WorkService workService;
 
+    // TODO 没有使用JSON获取数据
     @PostMapping("/add")
     public Response<?> addWork(@RequestBody WorkEntity workEntity){
         workService.addWork(workEntity);

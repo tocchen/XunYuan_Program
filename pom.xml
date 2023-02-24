@@ -14,10 +14,12 @@
         <module>XunYuan_Data_CV</module>
         <module>XunYuan_ManagerSystem_Company</module>
         <module>XunYuan_ManagerSystem_DataDict</module>
-        <module>XunYuan_ManagerSystem_User</module>
+        <module>XunYuan_User_API</module>
         <module>XunYuan_Data_User_CV</module>
         <module>XunYuan_Common</module>
-        <module>XunYuan_SpringSecurity_GateWay_API</module>
+        <module>XunYuan_GateWay_API</module>
+        <module>XunYuan_SpringSecurity_API</module>
+        <module>XunYuan_Sercrity_GateWay</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -129,6 +131,7 @@
                 <artifactId>jjwt</artifactId>
                 <version>${jjwt.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 

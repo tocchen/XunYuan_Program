@@ -40,8 +40,10 @@ public class WorkEntity implements Serializable {
     private String workType;
 
     // =========================
+    // 岗位所需时间
     private String JD;
 
+    // 岗位描述
     private String describe;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date createDateTime;

@@ -1,7 +1,9 @@
 package top.tocchen.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,11 +15,15 @@ import java.util.Date;
  **/
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserInfoEntity implements Serializable {
 
     private static final long serialVersionUID = 202302201428L;
 
     private String name;
+
+    /** 用户Id */
+    private String userId;
 
     /** 求职状态 */
     private String jobStatus;
@@ -29,7 +35,8 @@ public class UserInfoEntity implements Serializable {
     private String identity;
 
     /** 生日 */
-    private Date Birthday;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date birthday;
 
     private String phone;
 

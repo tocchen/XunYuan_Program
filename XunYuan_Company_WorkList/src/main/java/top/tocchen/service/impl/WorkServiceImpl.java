@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import top.tocchen.utils.redis.CacheKeyName;
 import top.tocchen.utils.redis.RedisCacheKeyGenerator;
 import top.tocchen.utils.redis.RedisDBName;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +47,8 @@ public class WorkServiceImpl implements WorkService {
 
 
     public void addWork(WorkEntity entity) {
+        entity.setUpdateDateTime(new Date());
+        entity.setCreateDateTime(new Date());
         WorkEntity insert = mongoTemplate.insert(entity);
         String key = RedisCacheKeyGenerator.generatorByIdKey(REDIS_WORK_LIST_NAME, entity.getId());
         BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(key);
@@ -52,7 +56,6 @@ public class WorkServiceImpl implements WorkService {
         boundValueOperations.expire(1, TimeUnit.DAYS);
     }
 
-    @CacheEvict(cacheNames = REDIS_WORK_LIST_NAME,keyGenerator = CacheKeyName.QUERY_ID_KEY)
     public Long removeWorkByIdAndComId(String id, String companyId) {
         Criteria criteria = new Criteria();
         criteria.andOperator(
@@ -61,11 +64,15 @@ public class WorkServiceImpl implements WorkService {
                 Criteria.where("deleted").is(0)
         );
         Query query = new Query(criteria);
-        Update update = new Update().set("deleted",1);
+        Update update = new Update();
+        update.set("deleted",1);
+        update.set("updateDateTime",new Date());
         UpdateResult upset = mongoTemplate.upsert(query, update, WorkEntity.class);
         if (ObjectUtils.isEmpty(upset) || upset.getModifiedCount() != 1){
             throw new ExecuteException();
         }
+        String key = RedisCacheKeyGenerator.generatorByIdKey(REDIS_WORK_LIST_NAME, id);
+        redisTemplate.delete(key);
         return upset.getModifiedCount();
     }
 
@@ -95,6 +102,7 @@ public class WorkServiceImpl implements WorkService {
         }
         String key = RedisCacheKeyGenerator.generatorByIdKey(REDIS_WORK_LIST_NAME, entity.getId());
         BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(key);
+        entity.setUpdateDateTime(new Date());
         boundValueOperations.set(entity);
         boundValueOperations.expire(1,TimeUnit.DAYS);
         return upset.getModifiedCount();
@@ -108,27 +116,70 @@ public class WorkServiceImpl implements WorkService {
     }
 
     public List<WorkEntity> queryLatestWorkPage(int current, int pageSize) {
-        Criteria criteria = Criteria.where("deleted").is(0);
-        Sort sort = Sort.by(Sort.Direction.DESC, "updateDateTime");
-        Query query = new Query(criteria);
-        query.skip((current-1)*pageSize).limit(pageSize);
-        query.with(sort);
-        return mongoTemplate.find(query, WorkEntity.class);
+        List<WorkEntity> result = null;
+        String key = RedisCacheKeyGenerator.generatorAllKey("queryLatestWorkPage", REDIS_WORK_LIST_NAME, current, pageSize);
+        BoundListOperations boundListOperations = redisTemplate.boundListOps(key);
+        List range = boundListOperations.range(0, -1);
+        if (range != null && range.size() != 0){
+            result = new ArrayList<WorkEntity>(range.size());
+            for (Object item : range){
+                result.add((WorkEntity)redisTemplate.boundValueOps(item).get());
+            }
+        }else {
+            Criteria criteria = Criteria.where("deleted").is(0);
+            Sort sort = Sort.by(Sort.Direction.DESC, "updateDateTime");
+            Query query = new Query(criteria);
+            query.skip((current-1)*pageSize).limit(pageSize);
+            query.with(sort);
+            result = mongoTemplate.find(query, WorkEntity.class);
+            for(WorkEntity item : result){
+                String valueKey = RedisCacheKeyGenerator.generatorByIdKey(REDIS_WORK_LIST_NAME, item.getId());
+                boundListOperations.rightPush(valueKey);
+                BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(valueKey);
+                boundValueOperations.set(item);
+                boundValueOperations.expire(1,TimeUnit.DAYS);
+            }
+        }
+        boundListOperations.expire(10,TimeUnit.MINUTES);
+
+        return result;
     }
 
     public List<WorkEntity> queryWorkByParamPage(String param, int current, int pageSize) {
-        String regex = String.format("%s%s%s","^.*",param,".*$");
-        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        Criteria criteria = new Criteria();
-        criteria.orOperator(
-                Criteria.where("workName").regex(pattern),
-                Criteria.where("workTags").regex(pattern),
-                Criteria.where("JD").regex(pattern)
-        );
-        criteria.and("deleted").is(0);
-        Query query = new Query(criteria);
-        query.skip((current-1)*pageSize).limit(pageSize);
-        return mongoTemplate.find(query,WorkEntity.class);
+        List<WorkEntity> result = null;
+        String queryCompanyByNameKey = RedisCacheKeyGenerator.generatorParamKeyGenerator("queryWorkByParamPage", REDIS_WORK_LIST_NAME, param,current,pageSize);
+        BoundListOperations boundListOperations = redisTemplate.boundListOps(queryCompanyByNameKey);
+        List range = boundListOperations.range(0, -1);
+        if (range != null && range.size() != 0) {
+            result = new ArrayList<WorkEntity>(range.size());
+            for (Object o : range) {
+                BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(o);
+                WorkEntity entity = (WorkEntity) boundValueOperations.get();
+                result.add(entity);
+            }
+        }else {
+            String regex = String.format("%s%s%s","^.*",param,".*$");
+            Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+            Criteria criteria = new Criteria();
+            criteria.orOperator(
+                    Criteria.where("workName").regex(pattern),
+                    Criteria.where("workTags").regex(pattern),
+                    Criteria.where("JD").regex(pattern)
+            );
+            Query query = new Query(criteria);
+            query.skip((current-1)*pageSize).limit(pageSize);
+            result = mongoTemplate.find(query, WorkEntity.class);
+            for (WorkEntity item:result){
+                String valueKey = RedisCacheKeyGenerator.generatorByIdKey(REDIS_WORK_LIST_NAME, item.getId());
+                boundListOperations.rightPush(valueKey);
+                BoundValueOperations boundValueOperations = redisTemplate.boundValueOps(valueKey);
+                boundValueOperations.set(item);
+                boundValueOperations.expire(1,TimeUnit.DAYS);
+            }
+        }
+        boundListOperations.expire(10,TimeUnit.MINUTES);
+
+        return result;
     }
 
     public List<WorkEntity> queryWorkByScreeningParam(String address, double startWorkSalary, double endWorkSalary, String educational, String workType, int current, int pageSize) {

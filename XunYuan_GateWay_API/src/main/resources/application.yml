@@ -1,0 +1,42 @@
+server:
+  port: 11877
+
+spring:
+  application:
+    name: XunYuan-GateWay-API-Service
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:11520
+        username: nacos
+        password: nacos
+        group: XunYuan_Group
+        namespace: public
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[**]':
+            allowedOrginins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - DELTED
+              - PUT
+      routes:
+        - id: user_route
+          uri: lb://XunYuan-User-Service
+          predicates:
+            - Path=/user/**
+          filters:
+            - StripPrefix=1
+xunyuan:
+  jwt:
+    expiration: 1200
+    secretSalt: tocchen.top@XunYuan
+    tokenHead: Bearer  #JWT负载中拿到开头
+    tokenHeader: Authorization #JWT存储的请求头

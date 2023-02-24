@@ -2,7 +2,7 @@ package top.tocchen.utils;
 
 import com.sun.istack.internal.NotNull;
 import org.springframework.util.DigestUtils;
-import sun.security.provider.MD5;
+import top.tocchen.enums.MD5KeyEnum;
 
 import java.util.HashMap;
 import java.util.Random;
@@ -26,8 +26,8 @@ public class MD5Util {
      * @param str str
      * @return <MD5Str,value> AND <salt,value>
      */
-    public static HashMap<String,String> generateMD5(@NotNull String str){
-        return generateMD5(str,randomSalt());
+    public static HashMap<Object,String> generateMd5(@NotNull String str){
+        return generateMd5(str,randomSalt());
     }
     /**
      * 将字符串转换为md5
@@ -35,10 +35,10 @@ public class MD5Util {
      * @param salt 机密盐
      * @return <MD5Str,value> AND <salt,value>
      */
-    public static HashMap<String,String> generateMD5(@NotNull String str,@NotNull String salt){
-        HashMap<String, String> result = new HashMap<String, String>();
-        result.put("MD5Str",DigestUtils.md5DigestAsHex((str+salt).getBytes()));
-        result.put("salt",salt);
+    public static HashMap<Object,String> generateMd5(@NotNull String str,@NotNull String salt){
+        HashMap<Object, String> result = new HashMap<Object, String>();
+        result.put(MD5KeyEnum.MD5_STR,DigestUtils.md5DigestAsHex((str+salt).getBytes()));
+        result.put(MD5KeyEnum.SALT,salt);
         return result;
     }
 
@@ -49,7 +49,7 @@ public class MD5Util {
      * @param salt 加密盐
      * @return 比较结果
      */
-    public static boolean equalsMD5(@NotNull String md5,@NotNull String str,@NotNull String salt){
+    public static boolean equalsMd5(@NotNull String md5,@NotNull String str,@NotNull String salt){
         return md5.equals(DigestUtils.md5DigestAsHex((str+salt).getBytes()));
     }
 

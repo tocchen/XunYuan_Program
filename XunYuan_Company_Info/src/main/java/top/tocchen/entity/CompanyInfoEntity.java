@@ -23,6 +23,8 @@ public class CompanyInfoEntity {
     private String id;
     /** 名称 */
     private String companyName;
+    /** 企业用户Id */
+    private String companyUserId;
     /** 介绍 */
     private String introduction;
     /** 工商信息ID */

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.tocchen.mapper.CompanyUserMapper">
+
+    <resultMap id="UserCustomResultMap" type="top.tocchen.entity.CompanyUser">
+        <id column="id" property="id"  />
+        <result column="com_name" property="companyName"  />
+        <result column="com_user_phone" property="companyUserPhone" />
+        <result column="com_user_name" property="companyUserName" />
+        <result column="com_user_password" property="password" />
+        <result column="com_user_salt" property="companyUserSalt"  />
+    </resultMap>
+
+    <sql id="companyTableName">
+        `com_user_table`
+    </sql>
+
+    <sql id="customColumn">
+        `id`,`com_name`,`com_user_phone`,`com_user_name`,`com_user_password`,`com_user_salt`
+    </sql>
+
+
+
+    <sql id="allColumn">
+        `id`,`com_name`,`com_user_phone`,`com_user_name`,
+        `com_user_password`,`com_user_salt`,`is_deleted`,`create_time`,`update_time`,`sign`
+    </sql>
+
+
+    <insert id="insertCompanyUser" parameterType="top.tocchen.entity.CompanyUser">
+        INSERT INTO <include refid="companyTableName" />
+        (<include refid="allColumn" />)
+        VALUES
+        (
+        #{id},#{companyName},#{companyUserPhone},#{companyUserName},#{password},
+        #{companyUserSalt},0,NOW(),NOW(),#{sign}
+        )
+    </insert>
+
+    <select id="existCompanyUserByCompanyName" resultType="int" parameterType="string">
+        SELECT COUNT(`com_name`)
+        FROM <include refid="companyTableName" />
+        WHERE `com_name`=#{companyName}
+        AND `is_deleted`= 0;
+    </select>
+
+    <select id="queryCompanyUserByPhone" resultMap="UserCustomResultMap">
+        SELECT <include refid="customColumn" />
+        FROM <include refid="companyTableName" />
+        WHERE
+        `is_deleted` = 0 AND
+        `com_user_phone` = #{userPhone}
+    </select>
+
+
+</mapper>

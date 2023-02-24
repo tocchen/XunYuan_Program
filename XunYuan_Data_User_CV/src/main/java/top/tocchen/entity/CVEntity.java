@@ -3,6 +3,7 @@ package top.tocchen.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -17,6 +18,7 @@ import java.util.List;
  **/
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Document("xunyuan_user_cv")
 public class CVEntity implements Serializable {
 

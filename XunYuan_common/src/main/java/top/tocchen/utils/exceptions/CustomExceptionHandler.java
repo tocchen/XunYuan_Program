@@ -1,8 +1,8 @@
 package top.tocchen.utils.exceptions;
 
-import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import top.tocchen.utils.http.HttpStatusEnum;
 import top.tocchen.utils.http.Response;
 
@@ -93,5 +93,28 @@ public class CustomExceptionHandler {
     public Response<?> executeExceptionHandler(ExecuteException executeException){
         log.error(executeException.getMessage());
         return Response.fail(HttpStatusEnum.REQUEST_FAIL);
+    }
+
+
+    /**
+     * JSON 参数错误 无法获取准确的值
+     * @param e e
+     * @return Response
+     */
+    @ExceptionHandler(JsonParamFailException.class)
+    public Response<?> jsonParamFailExceptionHandler(JsonParamFailException e){
+        log.error(e.getMessage());
+        return Response.fail(HttpStatusEnum.REQUEST_PARAM_FAIL);
+    }
+
+    /**
+     * 用户注册失败 原有：用户已存在
+     * @param e e
+     * @return Response
+     */
+    @ExceptionHandler(UserExistNotRegisterException.class)
+    public Response<?> userExistNotRegisterExceptionHandler(UserExistNotRegisterException e){
+        log.error(e.getMessage());
+        return Response.fail(HttpStatusEnum.DATA_EXISTS);
     }
 }

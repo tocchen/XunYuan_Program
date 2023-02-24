@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.tocchen.mapper.NormalUserMapper">
+
+    <resultMap id="AllCustomResult" type="top.tocchen.entity.NormalUser">
+        <id column="id" property="id" />
+        <result column="user_name" property="userName" />
+        <result column="user_account" property="userAccount" />
+        <result column="user_password" property="userPassword" />
+        <result column="user_salt" property="userSalt" />
+        <result column="user_phone" property="userPhone" />
+        <result column="user_email" property="userEmail" />
+    </resultMap>
+
+    <sql id="normalTableName">
+        `normal_user_table`
+    </sql>
+
+    <sql id="allCloumn">
+        `id`,`user_name`,`user_account`,`user_password`,`user_salt`,
+        `user_phone`,`user_email`,`is_deleted`,`create_time`,`update_time`
+    </sql>
+
+    <sql id="customCloumn">
+        `id`,`user_name`,`user_account`,`user_password`,`user_salt`,`user_phone`,`user_email`
+    </sql>
+
+    <insert id="insertNormalUser" parameterType="top.tocchen.entity.NormalUser">
+        INSERT INTO <include refid="normalTableName" /> (<include refid="allCloumn" />)
+        VALUES
+        (
+        #{id},#{userName},#{userAccount},#{userPassword},#{userSalt},#{userPhone},#{userEmail},
+        0,NOW(),NOW()
+        )
+    </insert>
+
+    <select id="existNormalUserByPhone" parameterType="string" resultType="int">
+        SELECT COUNT(`user_phone`) FROM <include refid="normalTableName" />
+        WHERE `user_phone`=#{phone} AND `is_deleted`=0
+    </select>
+
+    <select id="queryNormalUserByPhoneOrAccount" resultMap="AllCustomResult">
+        SELECT <include refid="customCloumn" />
+        FROM <include refid="normalTableName" />
+        WHERE
+        `is_deleted` = 0 AND
+        (`user_phone` = #{params} OR `user_account` = #{params} )
+    </select>
+
+</mapper>
